@@ -1,5 +1,5 @@
 Attribute VB_Name = "Export"
-Sub x()
+Sub X()
     
     Dim objMyProj As VBProject
     Dim objVBComp As VBComponent

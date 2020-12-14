@@ -47,14 +47,14 @@ Sub Day06B()
 End Sub
 
 Public Function UNIQUECHARS(chtxt As String)
-    Dim x, i As Long
+    Dim X, i As Long
     
     With CreateObject("Scripting.Dictionary")
     
-        x = Split(StrConv(Replace(chtxt, " ", ""), 64), Chr(0))
+        X = Split(StrConv(Replace(chtxt, " ", ""), 64), Chr(0))
         
-        For i = 0 To UBound(x) - 1
-            .Item(x(i)) = Empty
+        For i = 0 To UBound(X) - 1
+            .Item(X(i)) = Empty
         Next
         
         UNIQUECHARS = Join(.keys, "")
