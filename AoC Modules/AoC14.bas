@@ -5,15 +5,12 @@ Sub Day14A()
     d = Split(ReadFile("AoC14.txt"), vbNewLine)
     
     ' Initiate variables
-    res = 0
-    Dim Memory(9999) As String
-    For i = 0 To UBound(Memory)
-        Memory(i) = "000000000000000000000000000000000000"
-    Next i
+    Dim Memory(99999) As String
+    Mask = ""
     
     '
-    Mask = Trim(Split(d(0), "=")(1))
-    For i = 1 To UBound(d)
+    For i = 0 To UBound(d)
+    
         If Left(d(i), 4) = "mask" Then
         
             Mask = Trim(Split(d(i), "=")(1))
@@ -24,35 +21,36 @@ Sub Day14A()
             Address = CLng(Trim(Split(Split(d(i), "[")(1), "]")(0)))
             
             Memory(Address) = Value
-            For j = Len(Memory(Address)) + 1 To Len(Mask)
-                Memory(Address) = "0" & Memory(Address)
-            Next j
             
-            For j = 0 To Len(Mask) - 1
-            
-                k = Len(Mask) - j
+            For j = 1 To Len(Mask)
                 
-                If Mid(Mask, k, 1) = "0" Then Memory(Address) = Mid(Memory(Address), 1, k - 1) & "0" & Mid(Memory(Address), k + 1)
-                If Mid(Mask, k, 1) = "1" Then Memory(Address) = Mid(Memory(Address), 1, k - 1) & "1" & Mid(Memory(Address), k + 1)
+                If Len(Mask) > Len(Memory(Address)) Then Memory(Address) = Mid(Memory(Address), 1, j - 1) & "0" & Mid(Memory(Address), j)
+                
+                If Mid(Mask, j, 1) <> "X" Then Memory(Address) = Mid(Memory(Address), 1, j - 1) & Mid(Mask, j, 1) & Mid(Memory(Address), j + 1)
                 
             Next j
             
         End If
+        
     Next i
     
     For Each m In Memory
         
-        m1 = CDec(Mid(m, 1, 18))
-        m2 = CDec(Mid(m, 19))
+        If m <> "" Then
         
-        r1 = r1 + CLng(Bin2Dec(CDec(m1)))
-        r2 = r2 + CLng(Bin2Dec(CDec(m2)))
+            m1 = CDec(Mid(m, 1, 18))
+            m2 = CDec(Mid(m, 19))
+            
+            r1 = r1 + CLng(Bin2Dec(CDec(m1)))
+            r2 = r2 + CLng(Bin2Dec(CDec(m2)))
+        
+        End If
         
     Next m
     
     res = r2 + 2 ^ 18 * r1
     
-    'Answer:
+    'Answer: 6386593869035
     MsgBox res
     Range("D14A") = res
 
@@ -61,62 +59,49 @@ End Sub
 Sub Day14B()
 
     ' WARNING! WARNING! WARNING! WARNING! WARNING!
-    ' WARNING!  20 MINUTES OF EXECUTION!  WARNING!
+    ' WARNING!  16 MINUTES OF EXECUTION!  WARNING!
     ' WARNING! WARNING! WARNING! WARNING! WARNING!
 
     ' Load input for puzzle
     d = Split(ReadFile("AoC14.txt"), vbNewLine)
+    '295115141728
     
     ' Initiate variables
     res = 0
     addresslist = ""
     Dim Memory(99999) As String
-    For i = 0 To UBound(Memory)
-        Memory(i) = "000000000000000000000000000000000000"
-    Next i
     
     '
-    Mask = Trim(Split(d(0), "=")(1))
-    For i = 1 To UBound(d)
+    Mask = ""
+    For i = 0 To UBound(d)
+    
         If Left(d(i), 4) = "mask" Then
+        
             Mask = Trim(Split(d(i), "=")(1))
+            
         Else
             
-            Value = Dec2Bin(CDec(Trim(Split(d(i), "=")(1))))
             Address = Dec2Bin(CDec(Trim(Split(Split(d(i), "[")(1), "]")(0))))
             
-            For j = Len(Address) + 1 To Len(Mask)
-                Address = "0" & Address
-            Next j
-            
             For j = 1 To Len(Mask)
+                
+                If Len(Mask) > Len(Address) Then Address = Mid(Address, 1, j - 1) & "0" & Mid(Address, j)
                 If Mid(Mask, j, 1) <> "0" Then Address = Mid(Address, 1, j - 1) & Mid(Mask, j, 1) & Mid(Address, j + 1)
+                
             Next j
             
-            Address = Replace(getAddress(Address, 1), ",,", ",")
-            Address = Replace(Address, ",,", ",")
-            Address = Replace(Address, ",,", ",")
-            Address = Replace(Address, ",,", ",")
-            Address = Replace(Trim(Replace(Address, ",", " ")), " ", ",")
+            Address = getAddress2(Address)
             
             For Each ma In Split(Address, ",")
-        
-                ma1 = CDec(Mid(ma, 1, 18))
-                ma2 = CDec(Mid(ma, 19))
+            
+                If ma = "" Then Exit For
                 
-                ma = CLng(Bin2Dec(CDec(ma1))) * 2 ^ 18 + CLng(Bin2Dec(CDec(ma2)))
+                ma = CLng(Bin2Dec(CDec(Mid(ma, 1, Len(ma) - 18)))) * 2 ^ 18 + CLng(Bin2Dec(CDec(Mid(ma, Len(ma) - 18 + 1))))
                 
-                If InStr(addresslist, ma) = 0 Then
-                    addresslist = addresslist & ma & ","
-                End If
+                If InStr(addresslist, ma) = 0 Then addresslist = addresslist & ma & ","
                 
                 na = Mid(addresslist, 1, InStr(addresslist, ma))
-                myAddress = Len(na) - Len(Replace(na, ",", ""))
-                
-                Memory(myAddress) = Value
-                For j = Len(Memory(myAddress)) + 1 To Len(Mask)
-                    Memory(myAddress) = "0" & Memory(myAddress)
-                Next j
+                Memory(Len(na) - Len(Replace(na, ",", ""))) = Split(d(i), "=")(1)
                 
             Next ma
             
@@ -125,42 +110,41 @@ Sub Day14B()
     Next i
     
     For Each m In Memory
+    
+        If m = "" Then Exit For
         
-        m1 = CDec(Mid(m, 1, 18))
-        m2 = CDec(Mid(m, 19))
+        res = res + CDec(m)
         
-        r1 = r1 + CLng(Bin2Dec(CDec(m1)))
-        r2 = r2 + CLng(Bin2Dec(CDec(m2)))
-        
-        'MsgBox CLng(m)
     Next m
     
-    res = r2 + 2 ^ 18 * r1
-    
-    'Answer:
+    'Answer: 4288986482164
     MsgBox res
     Range("D14B") = res
 
 End Sub
 
-Function getAddress(a, init)
+Function getAddress2(a)
 
-    getAddress = ""
-    freeX = True
-    For i = init To Len(a)
+    getAddress2 = a
+    For i = 1 To Len(a)
     
         If Mid(a, i, 1) = "X" Then
-            freeX = False
             
-            getAddress = getAddress & "," & getAddress(Mid(a, 1, i - 1) & "0" & Mid(a, i + 1), i)
-            getAddress = getAddress & "," & getAddress(Mid(a, 1, i - 1) & "1" & Mid(a, i + 1), i)
+            newAddr = ""
+            For Each addr In Split(getAddress2, ",")
             
-            Exit For
+                If addr = "" Then Exit For
+                
+                newAddr = newAddr & Mid(addr, 1, i - 1) & "0" & Mid(addr, i + 1) & ","
+                newAddr = newAddr & Mid(addr, 1, i - 1) & "1" & Mid(addr, i + 1) & ","
+            
+            Next addr
+            
+            getAddress2 = newAddr
+            
         End If
         
     Next i
-    
-    If freeX Then getAddress = a
 
 End Function
 
